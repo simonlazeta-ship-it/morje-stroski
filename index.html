@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Morje Stroški</title>
+
+<style>
+
+body{
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#f2f2f7;
+    margin:0;
+    padding:15px;
+}
+
+h1{
+    text-align:center;
+}
+
+.card{
+    background:white;
+    border-radius:16px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    margin-top:5px;
+    margin-bottom:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    box-sizing:border-box;
+}
+
+button{
+    width:100%;
+    background:#007AFF;
+    color:white;
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:8px;
+    text-align:left;
+    border-bottom:1px solid #eee;
+}
+
+.positive{
+    color:green;
+    font-weight:bold;
+}
+
+.negative{
+    color:red;
+    font-weight:bold;
+}
+
+.bigAmount{
+    font-size:28px;
+    font-weight:bold;
+    text-align:center;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🏖 Morje Stroški</h1>
+
+<div class="card">
+    <h2>💸 Poravnava med paroma</h2>
+    <div id="pairSettlement">
+        Nalaganje...
+    </div>
+</div>
+
+<div class="card">
+    <h2>➕ Dodaj strošek</h2>
+
+    <label>Znesek (€)</label>
+    <input type="number" id="amount" step="0.01">
+
+    <label>Plačal</label>
+    <select id="payer">
+        <option>Simon</option>
+        <option>Alex</option>
+        <option>Špela</option>
+        <option>Urška</option>
+    </select>
+
+    <label>Kategorija</label>
+    <select id="category">
+        <option>🍽 Hrana</option>
+        <option>🛒 Trgovina</option>
+        <option>🍺 Pijača</option>
+        <option>⛽ Gorivo</option>
+        <option>🏖 Plaža</option>
+        <option>🏠 Namestitev</option>
+        <option>🚗 Cestnine</option>
+        <option>🎟 Izleti</option>
+        <option>📦 Drugo</option>
+    </select>
+
+    <label>Komentar</label>
+    <input type="text" id="comment">
+
+    <button onclick="addExpense()">Shrani strošek</button>
+</div>
+
+<div class="card">
+    <h2>👥 Posamezniki</h2>
+    <div id="summary"></div>
+</div>
+
+<div class="card">
+    <h2>🏠 Pari</h2>
+    <div id="pairs"></div>
+</div>
+
+<div class="card">
+    <h2>📋 Zadnji stroški</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Plačal</th>
+                <th>Kategorija</th>
+                <th>Opis</th>
+                <th>€</th>
+            </tr>
+        </thead>
+        <tbody id="expenses"></tbody>
+    </table>
+</div>
+
+<script>
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxsQUd5NCQDl0J_CLl9eIrIIirUm4_NCZg4Un880pbkEkQ2RMO8daA_LbTCVNo1MIF1sw/exec";
+
+const people = ["Simon","Alex","Špela","Urška"];
+
+let expenses = [];
+
+async function loadExpenses(){
+
+    try{
+
+        const response = await fetch(API_URL);
+
+        const data = await response.json();
+
+        expenses = [];
+
+        for(let i=1;i<data.length;i++){
+
+            expenses.push({
+                payer:data[i][2],
+                category:data[i][3],
+                comment:data[i][4],
+                amount:Number(data[i][5])
+            });
+
+        }
+
+        render();
+
+    }catch(err){
+
+        console.error(err);
+        alert("Napaka pri branju podatkov.");
+
+    }
+}
+
+async function addExpense(){
+
+    const amount =
+        Number(document.getElementById("amount").value);
+
+    if(!amount || amount <= 0){
+        alert("Vnesi znesek.");
+        return;
+    }
+
+    const payload = {
+        payer:document.getElementById("payer").value,
+        category:document.getElementById("category").value,
+        comment:document.getElementById("comment").value,
+        amount:amount
+    };
+
+    try{
+
+        await fetch(API_URL,{
+            method:"POST",
+            body:JSON.stringify(payload)
+        });
+
+        document.getElementById("amount").value="";
+        document.getElementById("comment").value="";
+
+        loadExpenses();
+
+    }catch(err){
+
+        console.error(err);
+        alert("Napaka pri shranjevanju.");
+
+    }
+}
+
+function render(){
+
+    let total = 0;
+
+    const paid = {
+        Simon:0,
+        Alex:0,
+        "Špela":0,
+        "Urška":0
+    };
+
+    expenses.forEach(e=>{
+
+        total += e.amount;
+
+        if(paid[e.payer] !== undefined){
+            paid[e.payer] += e.amount;
+        }
+
+    });
+
+    const share = total / 4;
+
+    let html = `
+        <p><b>Skupni stroški:</b> ${total.toFixed(2)} €</p>
+        <p><b>Na osebo:</b> ${share.toFixed(2)} €</p>
+
+        <table>
+        <tr>
+            <th>Oseba</th>
+            <th>Plačano</th>
+            <th>Stanje</th>
+        </tr>
+    `;
+
+    people.forEach(person=>{
+
+        const balance = paid[person] - share;
+
+        html += `
+        <tr>
+            <td>${person}</td>
+            <td>${paid[person].toFixed(2)} €</td>
+            <td class="${balance>=0?'positive':'negative'}">
+                ${balance.toFixed(2)} €
+            </td>
+        </tr>
+        `;
+    });
+
+    html += "</table>";
+
+    document.getElementById("summary").innerHTML = html;
+
+    const pairSU = paid["Simon"] + paid["Urška"];
+    const pairAS = paid["Alex"] + paid["Špela"];
+
+    const idealPair = total / 2;
+
+    const saldoSU = pairSU - idealPair;
+
+    document.getElementById("pairs").innerHTML = `
+        <p><b>Simon & Urška:</b> ${pairSU.toFixed(2)} €</p>
+        <p><b>Alex & Špela:</b> ${pairAS.toFixed(2)} €</p>
+    `;
+
+    if(Math.abs(saldoSU) < 0.01){
+
+        document.getElementById("pairSettlement").innerHTML =
+            "<div class='bigAmount'>✅ Poravnano</div>";
+
+    }else if(saldoSU > 0){
+
+        document.getElementById("pairSettlement").innerHTML = `
+            <div>
+                Alex & Špela morata nakazati
+            </div>
+            <div class="bigAmount">
+                ${saldoSU.toFixed(2)} €
+            </div>
+            <div>
+                Simonu & Urški
+            </div>
+        `;
+
+    }else{
+
+        document.getElementById("pairSettlement").innerHTML = `
+            <div>
+                Simon & Urška morata nakazati
+            </div>
+            <div class="bigAmount">
+                ${Math.abs(saldoSU).toFixed(2)} €
+            </div>
+            <div>
+                Alexu & Špeli
+            </div>
+        `;
+    }
+
+    const tbody =
+        document.getElementById("expenses");
+
+    tbody.innerHTML = "";
+
+    expenses
+        .slice()
+        .reverse()
+        .forEach(e=>{
+
+        tbody.innerHTML += `
+        <tr>
+            <td>${e.payer}</td>
+            <td>${e.category}</td>
+            <td>${e.comment}</td>
+            <td>${e.amount.toFixed(2)}</td>
+        </tr>
+        `;
+
+    });
+
+}
+
+loadExpenses();
+
+</script>
+
+</body>
+</html>
