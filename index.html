@@ -1,183 +1,110 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0b0f">
-  <title>Morje Stroški</title>
-  <style>
-    :root { --bg:#f5f5f7; --card:#fff; --text:#17171a; --muted:#777; --accent:#111; --green:#16834b; --red:#c93636; --line:#e5e5e7; }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
-    .app{max-width:560px;margin:auto;min-height:100vh;padding-bottom:90px}
-    header{background:#0b0b0f;color:#fff;padding:24px 20px 20px;border-radius:0 0 24px 24px}
-    header h1{margin:0;font-size:26px}.sub{color:#aaa;margin-top:5px;font-size:14px}
-    .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-    .summary .box{background:#18181d;padding:14px;border-radius:14px}.label{font-size:12px;color:#aaa}.value{font-size:20px;font-weight:700;margin-top:5px}
-    main{padding:16px}.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #00000008}
-    button{border:0;border-radius:13px;padding:13px 16px;font-weight:700;cursor:pointer}
-    .primary{background:#111;color:white;width:100%;font-size:16px}.secondary{background:#eee}
-    .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .expense{padding:13px 0;border-bottom:1px solid var(--line)}.expense:last-child{border-bottom:0}
-    .expense-title{font-weight:700}.meta{font-size:12px;color:var(--muted);margin-top:4px}.amount{font-weight:700}
-    .green{color:var(--green)}.red{color:var(--red)}
-    label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}
-    input,select,textarea{width:100%;padding:13px;border:1px solid #ddd;border-radius:12px;font-size:16px;background:white}
-    textarea{min-height:80px;resize:vertical}
-    .hidden{display:none}.back{margin-bottom:12px}.notice{padding:12px;border-radius:12px;background:#fff4d6;font-size:13px}
-    nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;justify-content:center;z-index:5}
-    nav .nav-inner{max-width:560px;width:100%;display:flex;justify-content:space-around}
-    nav button{background:none;color:#666;padding:13px 18px;font-size:12px}.nav-active{color:#111!important;font-weight:800}
-    .empty{text-align:center;color:#888;padding:25px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0f">
+<title>Morje Stroški</title>
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#17171a;--muted:#777;--line:#e5e5e7;--green:#16834b;--red:#c93636}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+.app{max-width:560px;margin:auto;min-height:100vh;padding-bottom:90px}header{background:#0b0b0f;color:#fff;padding:24px 20px 20px;border-radius:0 0 24px 24px}
+h1{margin:0;font-size:26px}.sub{color:#aaa;margin-top:5px;font-size:14px}.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.box{background:#18181d;padding:14px;border-radius:14px}.label{font-size:12px;color:#aaa}.value{font-size:20px;font-weight:700;margin-top:5px}
+main{padding:16px}.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #00000008}
+button{border:0;border-radius:13px;padding:13px 16px;font-weight:700;cursor:pointer}.primary{background:#111;color:#fff;width:100%;font-size:16px}.secondary{background:#eee}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.expense{padding:13px 0;border-bottom:1px solid var(--line)}.expense:last-child{border:0}
+.title{font-weight:700}.meta{font-size:12px;color:var(--muted);margin-top:4px}.amount{font-weight:700}.green{color:var(--green)}.red{color:var(--red)}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}input,select,textarea{width:100%;padding:13px;border:1px solid #ddd;border-radius:12px;font-size:16px;background:#fff}textarea{min-height:70px}
+.hidden{display:none}.notice{padding:12px;border-radius:12px;background:#fff4d6;font-size:13px;margin-top:12px}.empty{text-align:center;color:#888;padding:25px}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:8px}.person{border:1px solid #ddd;border-radius:12px;padding:12px;background:#fafafa}.person input{width:auto;margin-right:7px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;z-index:5}.nav-inner{max-width:560px;margin:auto;display:flex;justify-content:space-around}nav button{background:none;color:#666;padding:12px 18px;font-size:12px}
+</style>
 </head>
 <body>
 <div class="app">
-  <header>
-    <h1>Morje Stroški</h1>
-    <div class="sub">Skupni stroški dopusta</div>
-    <div class="summary">
-      <div class="box"><div class="label">Skupaj</div><div class="value" id="total">0,00 €</div></div>
-      <div class="box"><div class="label">Tvoj saldo</div><div class="value" id="balance">0,00 €</div></div>
-    </div>
-  </header>
-
-  <main>
-    <section id="home">
-      <button class="primary" onclick="showAdd()">＋ Dodaj strošek</button>
-      <div class="card" style="margin-top:14px">
-        <div class="row"><h3 style="margin:0">Zadnji stroški</h3><button class="secondary" onclick="loadData()">Osveži</button></div>
-        <div id="expenses"><div class="empty">Nalaganje ...</div></div>
-      </div>
-      <div class="card">
-        <h3>Poravnava</h3>
-        <div id="settlement">Nalaganje ...</div>
-      </div>
-    </section>
-
-    <section id="add" class="hidden">
-      <div class="back"><button class="secondary" onclick="showHome()">← Nazaj</button></div>
-      <div class="card">
-        <h2>Nov strošek</h2>
-        <form id="expenseForm">
-          <label>Datum</label><input id="date" type="date" required>
-          <label>Kategorija</label>
-          <select id="category" required></select>
-          <label>Opis</label><input id="description" placeholder="npr. večerja, trajekt, gorivo..." required>
-          <label>Znesek (€)</label><input id="amount" type="number" min="0" step="0.01" required>
-          <label>Plačal</label>
-          <select id="paidBy" required></select>
-          <label>Opomba</label><textarea id="note" placeholder="Po želji"></textarea>
-          <br><br><button class="primary" type="submit">Shrani strošek</button>
-        </form>
-        <div id="formMessage"></div>
-      </div>
-    </section>
-  </main>
-
-  <nav><div class="nav-inner">
-    <button id="navHome" class="nav-active" onclick="showHome()">🏠<br>Pregled</button>
-    <button onclick="showAdd()">＋<br>Dodaj</button>
-    <button onclick="loadData()">↻<br>Osveži</button>
-  </div></nav>
+<header><h1>Morje Stroški</h1><div class="sub">Skupni stroški dogodka</div><select id="eventFilter" style="margin-top:12px;width:100%;padding:12px;border-radius:12px;border:0;font-size:16px"></select>
+<div class="summary"><div class="box"><div class="label">Skupaj</div><div class="value" id="total">0,00 €</div></div><div class="box"><div class="label">Tvoj saldo</div><div class="value" id="balance">0,00 €</div></div></div></header>
+<main>
+<section id="home">
+<button class="primary" onclick="showAdd()">＋ Dodaj strošek</button>
+<div class="card" style="margin-top:14px"><div class="row"><h3 style="margin:0">Zadnji stroški</h3><button class="secondary" onclick="loadData()">Osveži</button></div><div id="expenses"><div class="empty">Nalaganje ...</div></div></div>
+<div class="card"><h3>Poravnava</h3><div id="settlement"></div></div>
+</section>
+<section id="add" class="hidden">
+<button class="secondary" onclick="showHome()">← Nazaj</button>
+<div class="card"><h2>Nov strošek</h2>
+<form id="expenseForm">
+<label>Dogodek</label><select id="event" required></select>
+<label>Datum</label><input id="date" type="date" required>
+<label>Kategorija</label><select id="category"></select>
+<label>Opis</label><input id="description" placeholder="npr. večerja, trajekt, gorivo..." required>
+<label>Znesek (€)</label><input id="amount" type="number" min="0.01" step="0.01" required>
+<label>Plačal</label><select id="paidBy"></select>
+<label>Kdo sodeluje pri strošku?</label>
+<div class="people" id="participants"></div>
+<label>Opomba</label><textarea id="note"></textarea><br>
+<button class="primary" type="submit">Shrani strošek</button><div id="formMessage"></div>
+</form></div></section>
+</main>
+<nav><div class="nav-inner"><button onclick="showHome()">🏠<br>Pregled</button><button onclick="showAdd()">＋<br>Dodaj</button><button onclick="loadData()">↻<br>Osveži</button></div></nav>
 </div>
-
 <script>
-const CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbyVjgO8XpaFAbywTBQu7YddQGFB3zLQzyzUJDx6J6oKkZI-aE4hHEOvYofS8SH915bRvg/exec"
-};
-const PEOPLE = ["Simon","Urška","Alex","Špela"];
-const CATEGORIES = ["Hrana","Pijača","Trajekt","Gorivo","Nastanitev","Trgovina","Izlet","Drugo"];
-const CURRENT_USER = "Simon";
-
-let data = [];
-
-const eur = n => new Intl.NumberFormat("sl-SI",{style:"currency",currency:"EUR"}).format(Number(n)||0);
-const esc = s => String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-
+const CONFIG={API_URL:"https://script.google.com/macros/s/AKfycbyVjgO8XpaFAbywTBQu7YddQGFB3zLQzyzUJDx6J6oKkZI-aE4hHEOvYofS8SH915bRvg/exec"};
+const PEOPLE=["Simon","Urška","Alex","Špela"], CATEGORIES=["Hrana","Pijača","Trajekt","Gorivo","Nastanitev","Trgovina","Izlet","Drugo"], EVENTS=["Morje","Smučanje","Izlet","Vikend","Dopust","Ostalo"], CURRENT_USER="Simon";
+let data=[];
+const eur=n=>new Intl.NumberFormat("sl-SI",{style:"currency",currency:"EUR"}).format(Number(n)||0);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 function init(){
-  document.getElementById("date").value = new Date().toISOString().slice(0,10);
-  document.getElementById("category").innerHTML = CATEGORIES.map(x=>`<option>${x}</option>`).join("");
-  document.getElementById("paidBy").innerHTML = PEOPLE.map(x=>`<option>${x}</option>`).join("");
-  loadData();
+ document.getElementById("date").value=new Date().toISOString().slice(0,10);
+ category.innerHTML=CATEGORIES.map(x=>`<option>${x}</option>`).join(""); event.innerHTML=EVENTS.map(x=>`<option>${x}</option>`).join(""); eventFilter.innerHTML=EVENTS.map(x=>`<option>${x}</option>`).join(""); eventFilter.value=localStorage.getItem("ms_event")||EVENTS[0]; event.value=eventFilter.value; eventFilter.addEventListener("change",()=>{localStorage.setItem("ms_event",eventFilter.value); event.value=eventFilter.value; render();});
+ paidBy.innerHTML=PEOPLE.map(x=>`<option>${x}</option>`).join("");
+ participants.innerHTML=PEOPLE.map((x,i)=>`<label class="person"><input type="checkbox" value="${x}" ${i<4?"checked":""}>${x}</label>`).join("");
+ loadData();
 }
-function showHome(){document.getElementById("home").classList.remove("hidden");document.getElementById("add").classList.add("hidden");document.getElementById("navHome").classList.add("nav-active")}
-function showAdd(){document.getElementById("home").classList.add("hidden");document.getElementById("add").classList.remove("hidden");document.getElementById("navHome").classList.remove("nav-active")}
-
-async function api(action, payload={}) {
-  const params = new URLSearchParams({
-    action: action,
-    ...payload
-  });
-
-  const res = await fetch(CONFIG.API_URL + "?" + params.toString());
-
-  if (!res.ok) {
-    throw new Error("API napaka: " + res.status);
-  }
-
-  return await res.json();
+function showHome(){home.classList.remove("hidden");add.classList.add("hidden")}
+function showAdd(){home.classList.add("hidden");add.classList.remove("hidden")}
+async function api(action,payload={}){
+ const params=new URLSearchParams({action,...payload});
+ const r=await fetch(CONFIG.API_URL+"?"+params.toString());
+ if(!r.ok)throw new Error("API napaka: "+r.status);
+ return await r.json();
 }
-
 async function loadData(){
-  document.getElementById("expenses").innerHTML='<div class="empty">Nalaganje ...</div>';
-  try{
-    const res = await fetch(CONFIG.API_URL+"?action=list");
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error||"Napaka");
-    data=json.expenses||[];
-    render();
-  }catch(e){
-    document.getElementById("expenses").innerHTML=`<div class="notice">${esc(e.message)}</div>`;
-    document.getElementById("settlement").innerHTML='<div class="empty">API še ni povezan.</div>';
-  }
+ expenses.innerHTML='<div class="empty">Nalaganje ...</div>';
+ try{const r=await api("list");if(!r.ok)throw Error(r.error);data=r.expenses||[];render();}
+ catch(e){expenses.innerHTML=`<div class="notice">${esc(e.message)}</div>`}
 }
-
 function render(){
-  const total=data.reduce((s,x)=>s+Number(x.amount||0),0);
-  document.getElementById("total").textContent=eur(total);
-  const myPaid=data.filter(x=>x.paidBy===CURRENT_USER).reduce((s,x)=>s+Number(x.amount||0),0);
-  const share=total/PEOPLE.length;
-  const bal=myPaid-share;
-  document.getElementById("balance").textContent=(bal>=0?"+":"")+eur(bal);
-  document.getElementById("balance").className="value "+(bal>=0?"green":"red");
-
-  const sorted=[...data].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-  document.getElementById("expenses").innerHTML=sorted.length?sorted.slice(0,20).map(x=>`
-    <div class="expense"><div class="row">
-      <div><div class="expense-title">${esc(x.description)}</div><div class="meta">${esc(x.date)} · ${esc(x.category)} · plačal ${esc(x.paidBy)}</div></div>
-      <div class="amount">${eur(x.amount)}</div>
-    </div></div>`).join(""):'<div class="empty">Še ni stroškov.</div>';
-
-  const balances=PEOPLE.map(p=>{
-    const paid=data.filter(x=>x.paidBy===p).reduce((s,x)=>s+Number(x.amount||0),0);
-    return {p,b:paid-share};
-  });
-  document.getElementById("settlement").innerHTML=balances.map(x=>`
-    <div class="row" style="padding:8px 0"><span>${esc(x.p)}</span><strong class="${x.b>=0?'green':'red'}">${x.b>=0?"+":""}${eur(x.b)}</strong></div>`).join("");
+ const selectedEvent=eventFilter.value;
+ const filtered=data.filter(x=>(x.event||"Morje")===selectedEvent);
+ const total=filtered.reduce((s,x)=>s+Number(x.amount||0),0);document.getElementById("total").textContent=eur(total);
+ const balances=PEOPLE.map(p=>({p,b:0}));
+ data.forEach(x=>{const ps=Array.isArray(x.participants)&&x.participants.length?x.participants:[...PEOPLE];const share=Number(x.amount)/ps.length;
+   const payer=balances.find(y=>y.p===x.paidBy);if(payer)payer.b+=Number(x.amount);
+   ps.forEach(p=>{const q=balances.find(y=>y.p===p);if(q)q.b-=share});
+ });
+ const me=balances.find(x=>x.p===CURRENT_USER).b;balance.textContent=(me>=0?"+":"")+eur(me);balance.className="value "+(me>=0?"green":"red");
+ const sorted=[...filtered].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+ expenses.innerHTML=sorted.length?sorted.slice(0,30).map(x=>`<div class="expense"><div class="row"><div><div class="title">${esc(x.description)}</div><div class="meta">${esc(x.date)} · ${esc(x.category)} · plačal ${esc(x.paidBy)} · ${esc((x.participants||PEOPLE).join(", "))}</div></div><div class="amount">${eur(x.amount)}</div></div></div>`).join(""):'<div class="empty">Še ni stroškov.</div>';
+ renderSettlement(balances);
 }
-
-document.getElementById("expenseForm").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const msg=document.getElementById("formMessage");
-  msg.innerHTML="";
-  const payload={
-    date:document.getElementById("date").value,
-    category:document.getElementById("category").value,
-    description:document.getElementById("description").value,
-    amount:Number(document.getElementById("amount").value),
-    paidBy:document.getElementById("paidBy").value,
-    note:document.getElementById("note").value
-  };
-  try{
-    const r=await api("add",payload);
-    if(!r.ok) throw new Error(r.error||"Shranjevanje ni uspelo");
-    e.target.reset();
-    document.getElementById("date").value=new Date().toISOString().slice(0,10);
-    msg.innerHTML='<div class="notice">Strošek je shranjen.</div>';
-    await loadData();
-    setTimeout(showHome,500);
-  }catch(err){msg.innerHTML=`<div class="notice">${esc(err.message)}</div>`}
+function renderSettlement(balances){
+ const pairA=balances.filter(x=>x.p==="Simon"||x.p==="Urška").reduce((s,x)=>s+x.b,0);
+ const pairB=balances.filter(x=>x.p==="Alex"||x.p==="Špela").reduce((s,x)=>s+x.b,0);
+ let html="";
+ if(Math.abs(pairA)<0.01) html='<div class="notice">Pari sta poravnani. Ni dolga.</div>';
+ else if(pairA>0) html=`<div class="row"><strong>Simon & Urška</strong><strong class="green">prejmeta ${eur(pairA)}</strong></div><div class="meta" style="margin-top:8px">Alex & Špela plačata Simonu in Urški.</div>`;
+ else html=`<div class="row"><strong>Alex & Špela</strong><strong class="green">prejmeta ${eur(-pairA)}</strong></div><div class="meta" style="margin-top:8px">Simon & Urška plačata Alexu in Špeli.</div>`;
+ settlement.innerHTML=html;
+}
+expenseForm.addEventListener("submit",async e=>{
+ e.preventDefault();formMessage.innerHTML="";
+ const ps=[...document.querySelectorAll("#participants input:checked")].map(x=>x.value);
+ if(!ps.length){formMessage.innerHTML='<div class="notice">Izberi vsaj eno osebo.</div>';return}
+ const payload={date:date.value,category:category.value,description:description.value,amount:Number(amount.value),paidBy:paidBy.value,participants:ps.join("|"),note:note.value};
+ try{const r=await api("add",payload);if(!r.ok)throw Error(r.error);e.target.reset();date.value=new Date().toISOString().slice(0,10);document.querySelectorAll("#participants input").forEach(x=>x.checked=true);await loadData();showHome();}
+ catch(err){formMessage.innerHTML=`<div class="notice">${esc(err.message)}</div>`}
 });
 init();
 </script>
