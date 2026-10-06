@@ -104,13 +104,18 @@ function init(){
 function showHome(){document.getElementById("home").classList.remove("hidden");document.getElementById("add").classList.add("hidden");document.getElementById("navHome").classList.add("nav-active")}
 function showAdd(){document.getElementById("home").classList.add("hidden");document.getElementById("add").classList.remove("hidden");document.getElementById("navHome").classList.remove("nav-active")}
 
-async function api(action, payload={}){
-  if(CONFIG.API_URL.startsWith("VNESI_")) throw new Error("Najprej vnesi URL Google Apps Script API-ja v index.html.");
-  const res = await fetch(CONFIG.API_URL,{
-    method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({action,...payload})
+async function api(action, payload={}) {
+  const params = new URLSearchParams({
+    action: action,
+    ...payload
   });
+
+  const res = await fetch(CONFIG.API_URL + "?" + params.toString());
+
+  if (!res.ok) {
+    throw new Error("API napaka: " + res.status);
+  }
+
   return await res.json();
 }
 
