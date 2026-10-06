@@ -56,10 +56,19 @@ let data=[];
 const eur=n=>new Intl.NumberFormat("sl-SI",{style:"currency",currency:"EUR"}).format(Number(n)||0);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 function init(){
- document.getElementById("date").value=new Date().toISOString().slice(0,10);
- category.innerHTML=CATEGORIES.map(x=>`<option>${x}</option>`).join(""); event.innerHTML=EVENTS.map(x=>`<option>${x}</option>`).join(""); eventFilter.innerHTML=EVENTS.map(x=>`<option>${x}</option>`).join(""); eventFilter.value=localStorage.getItem("ms_event")||EVENTS[0]; event.value=eventFilter.value; eventFilter.addEventListener("change",()=>{localStorage.setItem("ms_event",eventFilter.value); event.value=eventFilter.value; render();});
- paidBy.innerHTML=PEOPLE.map(x=>`<option>${x}</option>`).join("");
- participants.innerHTML=PEOPLE.map((x,i)=>`<label class="person"><input type="checkbox" value="${x}" ${i<4?"checked":""}>${x}</label>`).join("");
+ const dateEl=document.getElementById("date");
+ const categoryEl=document.getElementById("category");
+ const eventEl=document.getElementById("event");
+ const eventFilterEl=document.getElementById("eventFilter");
+ const paidByEl=document.getElementById("paidBy");
+ dateEl.value=new Date().toISOString().slice(0,10);
+ categoryEl.innerHTML=CATEGORIES.map(x=>`<option>${x}</option>`).join("");
+ eventEl.innerHTML=EVENTS.map(x=>`<option>${x}</option>`).join("");
+ eventFilterEl.innerHTML=EVENTS.map(x=>`<option>${x}</option>`).join("");
+ eventFilterEl.value=localStorage.getItem("ms_event")||EVENTS[0];
+ eventEl.value=eventFilterEl.value;
+ eventFilterEl.addEventListener("change",()=>{localStorage.setItem("ms_event",eventFilterEl.value);eventEl.value=eventFilterEl.value;render();});
+ paidByEl.innerHTML=PEOPLE.map(x=>`<option>${x}</option>`).join("");
  loadData();
 }
 function showHome(){home.classList.remove("hidden");add.classList.add("hidden")}
@@ -71,22 +80,22 @@ async function api(action,payload={}){
  return await r.json();
 }
 async function loadData(){
- expenses.innerHTML='<div class="empty">Nalaganje ...</div>';
+ document.getElementById("expenses").innerHTML='<div class="empty">Nalaganje ...</div>';
  try{const r=await api("list");if(!r.ok)throw Error(r.error);data=r.expenses||[];render();}
- catch(e){expenses.innerHTML=`<div class="notice">${esc(e.message)}</div>`}
+ catch(e){document.getElementById("expenses").innerHTML=`<div class="notice">${esc(e.message)}</div>`}
 }
 function render(){
  const selectedEvent=eventFilter.value;
  const filtered=data.filter(x=>(x.event||"Morje")===selectedEvent);
  const total=filtered.reduce((s,x)=>s+Number(x.amount||0),0);document.getElementById("total").textContent=eur(total);
  const balances=PEOPLE.map(p=>({p,b:0}));
- data.forEach(x=>{const ps=Array.isArray(x.participants)&&x.participants.length?x.participants:[...PEOPLE];const share=Number(x.amount)/ps.length;
+ filtered.forEach(x=>{const ps=[...PEOPLE];const share=Number(x.amount)/ps.length;
    const payer=balances.find(y=>y.p===x.paidBy);if(payer)payer.b+=Number(x.amount);
    ps.forEach(p=>{const q=balances.find(y=>y.p===p);if(q)q.b-=share});
  });
- const me=balances.find(x=>x.p===CURRENT_USER).b;balance.textContent=(me>=0?"+":"")+eur(me);balance.className="value "+(me>=0?"green":"red");
+ const me=balances.find(x=>x.p===CURRENT_USER).b;document.getElementById("balance").textContent=(me>=0?"+":"")+eur(me);document.getElementById("balance").className="value "+(me>=0?"green":"red");
  const sorted=[...filtered].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
- expenses.innerHTML=sorted.length?sorted.slice(0,30).map(x=>`<div class="expense"><div class="row"><div><div class="title">${esc(x.description)}</div><div class="meta">${esc(x.date)} · ${esc(x.category)} · plačal ${esc(x.paidBy)} · ${esc((x.participants||PEOPLE).join(", "))}</div></div><div class="amount">${eur(x.amount)}</div></div></div>`).join(""):'<div class="empty">Še ni stroškov.</div>';
+ document.getElementById("expenses").innerHTML=sorted.length?sorted.slice(0,30).map(x=>`<div class="expense"><div class="row"><div><div class="title">${esc(x.description)}</div><div class="meta">${esc(x.date)} · ${esc(x.category)} · plačal ${esc(x.paidBy)} · ${esc((x.participants||PEOPLE).join(", "))}</div></div><div class="amount">${eur(x.amount)}</div></div></div>`).join(""):'<div class="empty">Še ni stroškov.</div>';
  renderSettlement(balances);
 }
 function renderSettlement(balances){
@@ -96,15 +105,15 @@ function renderSettlement(balances){
  if(Math.abs(pairA)<0.01) html='<div class="notice">Pari sta poravnani. Ni dolga.</div>';
  else if(pairA>0) html=`<div class="row"><strong>Simon & Urška</strong><strong class="green">prejmeta ${eur(pairA)}</strong></div><div class="meta" style="margin-top:8px">Alex & Špela plačata Simonu in Urški.</div>`;
  else html=`<div class="row"><strong>Alex & Špela</strong><strong class="green">prejmeta ${eur(-pairA)}</strong></div><div class="meta" style="margin-top:8px">Simon & Urška plačata Alexu in Špeli.</div>`;
- settlement.innerHTML=html;
+ document.getElementById("settlement").innerHTML=html;
 }
-expenseForm.addEventListener("submit",async e=>{
- e.preventDefault();formMessage.innerHTML="";
+document.getElementById("expenseForm").addEventListener("submit",async e=>{
+ e.preventDefault();document.getElementById("formMessage").innerHTML="";
  const ps=[...document.querySelectorAll("#participants input:checked")].map(x=>x.value);
- if(!ps.length){formMessage.innerHTML='<div class="notice">Izberi vsaj eno osebo.</div>';return}
+ if(!ps.length){document.getElementById("formMessage").innerHTML='<div class="notice">Izberi vsaj eno osebo.</div>';return}
  const payload={date:date.value,category:category.value,description:description.value,amount:Number(amount.value),paidBy:paidBy.value,participants:ps.join("|"),note:note.value};
  try{const r=await api("add",payload);if(!r.ok)throw Error(r.error);e.target.reset();date.value=new Date().toISOString().slice(0,10);document.querySelectorAll("#participants input").forEach(x=>x.checked=true);await loadData();showHome();}
- catch(err){formMessage.innerHTML=`<div class="notice">${esc(err.message)}</div>`}
+ catch(err){document.getElementById("formMessage").innerHTML=`<div class="notice">${esc(err.message)}</div>`}
 });
 init();
 </script>
